@@ -1,0 +1,208 @@
+groups:
+  - name: system_alerts
+    rules:
+      # Alerte CPU élevé
+      - alert: HighCPUUsage
+        expr: system_cpu_usage_percent > 80
+        for: 5m
+        labels:
+          severity: warning
+          service: system
+        annotations:
+          summary: "High CPU usage detected"
+          description: "CPU usage is above 80% for more than 5 minutes. Current value: {{ $value }}%"
+
+      # Alerte CPU critique
+      - alert: CriticalCPUUsage
+        expr: system_cpu_usage_percent > 95
+        for: 2m
+        labels:
+          severity: critical
+          service: system
+        annotations:
+          summary: "Critical CPU usage detected"
+          description: "CPU usage is above 95% for more than 2 minutes. Current value: {{ $value }}%"
+
+      # Alerte mémoire élevée
+      - alert: HighMemoryUsage
+        expr: (system_memory_usage_bytes{type="used"} / system_memory_usage_bytes{type="total"}) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+          service: system
+        annotations:
+          summary: "High memory usage detected"
+          description: "Memory usage is above 85% for more than 5 minutes. Current value: {{ $value }}%"
+
+      # Alerte mémoire critique
+      - alert: CriticalMemoryUsage
+        expr: (system_memory_usage_bytes{type="used"} / system_memory_usage_bytes{type="total"}) * 100 > 95
+        for: 2m
+        labels:
+          severity: critical
+          service: system
+        annotations:
+          summary: "Critical memory usage detected"
+          description: "Memory usage is above 95% for more than 2 minutes. Current value: {{ $value }}%"
+
+      # Alerte disque plein
+      - alert: DiskSpaceRunningOut
+        expr: (system_disk_usage_bytes{type="used"} / system_disk_usage_bytes{type="total"}) * 100 > 90
+        for: 5m
+        labels:
+          severity: critical
+          service: system
+        annotations:
+          summary: "Disk space running out"
+          description: "Disk usage on {{ $labels.mountpoint }} is above 90%. Current value: {{ $value }}%"
+
+  - name: service_alerts
+    rules:
+      # Service indisponible
+      - alert: ServiceDown
+        expr: service_up == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: "{{ $labels.service_name }}"
+        annotations:
+          summary: "Service is down"
+          description: "Service {{ $labels.service_name }} has been down for more than 1 minute"
+
+      # Temps de réponse élevé
+      - alert: HighResponseTime
+        expr: histogram_quantile(0.95, http_request_duration_seconds_bucket) > 1
+        for: 5m
+        labels:
+          severity: warning
+          service: "{{ $labels.service }}"
+        annotations:
+          summary: "High response time detected"
+          description: "95th percentile response time for {{ $labels.service }} is above 1 second for more than 5 minutes. Current value: {{ $value }}s"
+
+      # Taux d'erreur élevé
+      - alert: HighErrorRate
+        expr: (sum(rate(http_errors_total[5m])) / sum(rate(http_requests_total[5m]))) * 100 > 5
+        for: 3m
+        labels:
+          severity: warning
+          service: "{{ $labels.service }}"
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate for {{ $labels.service }} is above 5% for more than 3 minutes. Current value: {{ $value }}%"
+
+      # Taux d'erreur critique
+      - alert: CriticalErrorRate
+        expr: (sum(rate(http_errors_total[5m])) / sum(rate(http_requests_total[5m]))) * 100 > 15
+        for: 1m
+        labels:
+          severity: critical
+          service: "{{ $labels.service }}"
+        annotations:
+          summary: "Critical error rate detected"
+          description: "Error rate for {{ $labels.service }} is above 15% for more than 1 minute. Current value: {{ $value }}%"
+
+  - name: business_alerts
+    rules:
+      # Chute des réservations
+      - alert: LowReservationRate
+        expr: rate(reservations_total[1h]) < 0.1
+        for: 30m
+        labels:
+          severity: warning
+          service: business
+        annotations:
+          summary: "Low reservation rate detected"
+          description: "Reservation rate has been below 0.1 per hour for more than 30 minutes"
+
+      # Chute critique des réservations
+      - alert: CriticalLowReservationRate
+        expr: rate(reservations_total[1h]) < 0.01
+        for: 15m
+        labels:
+          severity: critical
+          service: business
+        annotations:
+          summary: "Critical low reservation rate detected"
+          description: "Reservation rate has been below 0.01 per hour for more than 15 minutes"
+
+      # Baisse du taux de conversion
+      - alert: LowConversionRate
+        expr: conversion_rate{funnel_step="global"} < 1
+        for: 1h
+        labels:
+          severity: warning
+          service: business
+        annotations:
+          summary: "Low conversion rate detected"
+          description: "Global conversion rate has been below 1% for more than 1 hour. Current value: {{ $value }}%"
+
+      # Utilisateurs actifs faibles
+      - alert: LowActiveUsers
+        expr: active_users{timeframe="1h"} < 10
+        for: 30m
+        labels:
+          severity: warning
+          service: business
+        annotations:
+          summary: "Low active users detected"
+          description: "Number of active users in the last hour has been below 10 for more than 30 minutes"
+
+  - name: database_alerts
+    rules:
+      # Connexions de base de données élevées
+      - alert: HighDatabaseConnections
+        expr: database_connection_pool{status="active"} > 80
+        for: 5m
+        labels:
+          severity: warning
+          service: database
+        annotations:
+          summary: "High database connections detected"
+          description: "Active database connections for {{ $labels.database }} are above 80 for more than 5 minutes"
+
+      # Cache hit rate faible
+      - alert: LowCacheHitRate
+        expr: cache_hit_rate < 70
+        for: 10m
+        labels:
+          severity: warning
+          service: cache
+        annotations:
+          summary: "Low cache hit rate detected"
+          description: "Cache hit rate for {{ $labels.cache_type }} is below 70% for more than 10 minutes. Current value: {{ $value }}%"
+
+  - name: infrastructure_alerts
+    rules:
+      # Container restart
+      - alert: ContainerRestarted
+        expr: increase(container_start_time_seconds[5m]) > 0
+        for: 0m
+        labels:
+          severity: info
+          service: infrastructure
+        annotations:
+          summary: "Container has been restarted"
+          description: "Container {{ $labels.name }} has been restarted"
+
+      # Container high memory usage
+      - alert: ContainerHighMemoryUsage
+        expr: (container_memory_usage_bytes / container_spec_memory_limit_bytes) * 100 > 90
+        for: 5m
+        labels:
+          severity: warning
+          service: infrastructure
+        annotations:
+          summary: "Container high memory usage"
+          description: "Container {{ $labels.name }} memory usage is above 90% for more than 5 minutes"
+
+      # Container high CPU usage
+      - alert: ContainerHighCPUUsage
+        expr: rate(container_cpu_usage_seconds_total[5m]) * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+          service: infrastructure
+        annotations:
+          summary: "Container high CPU usage"
+          description: "Container {{ $labels.name }} CPU usage is above 80% for more than 5 minutes"

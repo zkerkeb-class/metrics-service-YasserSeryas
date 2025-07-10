@@ -1,0 +1,80 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  - "rules.yml"
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
+
+scrape_configs:
+  # Metrics service principal
+  - job_name: 'metrics-service'
+    static_configs:
+      - targets: ['metrics-service:3011']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+    scrape_timeout: 5s
+
+  # Prometheus lui-même
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+    scrape_interval: 30s
+
+  # Node Exporter pour métriques système
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+    scrape_interval: 15s
+
+  # cAdvisor pour métriques des conteneurs
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+    scrape_interval: 15s
+
+  # Services de l'écosystème de réservation (à configurer selon vos services)
+  - job_name: 'reservation-service'
+    static_configs:
+      - targets: ['reservation-service:3000']
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+    scrape_timeout: 5s
+
+  - job_name: 'user-service'
+    static_configs:
+      - targets: ['user-service:3002']
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+    scrape_timeout: 5s
+
+  - job_name: 'payment-service'
+    static_configs:
+      - targets: ['payment-service:3003']
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+    scrape_timeout: 5s
+
+  - job_name: 'notification-service'
+    static_configs:
+      - targets: ['notification-service:3004']
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+    scrape_timeout: 5s
+
+  # MongoDB Exporter (optionnel)
+  - job_name: 'mongodb-exporter'
+    static_configs:
+      - targets: ['mongodb-exporter:9216']
+    scrape_interval: 30s
+
+  # Redis Exporter (optionnel)
+  - job_name: 'redis-exporter'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+    scrape_interval: 30s

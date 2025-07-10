@@ -1,0 +1,229 @@
+services:
+  # Service de métriques principal
+  metrics-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: metrics-service
+    ports:
+      - "3011:3011"
+    environment:
+      - NODE_ENV=development
+      - MONGODB_URI=mongodb://mongo:27017/metrics_service
+      - REDIS_URL=redis://redis:6379
+      - RESERVATION_SERVICE_URL=http://localhost:3000
+      - USER_SERVICE_URL=http://localhost:3002
+      - PAYMENT_SERVICE_URL=http://localhost:3003
+      - NOTIFICATION_SERVICE_URL=http://localhost:3004
+      - PROMETHEUS_URL=http://prometheus:9090
+      - GRAFANA_URL=http://grafana:3000
+      - ALLOWED_ORIGINS=http://localhost:3010
+    depends_on:
+      - mongo
+    networks:
+      - metrics-network
+    volumes:
+      - metrics-logs:/app/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3011/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Frontend React
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: metrics-frontend
+    ports:
+      - "3010:3000"
+    environment:
+      - NODE_ENV=production
+      - REACT_APP_API_URL=http://localhost:3011
+      - REACT_APP_WS_URL=ws://localhost:3011
+      - GENERATE_SOURCEMAP=false
+    depends_on:
+      - metrics-service
+    networks:
+      - metrics-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # MongoDB pour stockage des données
+  mongo:
+    image: mongo:6.0
+    container_name: metrics-mongo
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=password123
+      - MONGO_INITDB_DATABASE=metrics_service
+    volumes:
+      - mongo-data:/data/db
+      - ./config/mongo-init.js:/docker-entrypoint-initdb.d/init.js:ro
+    networks:
+      - metrics-network
+    restart: unless-stopped
+
+  # Redis pour cache et sessions
+  redis:
+    image: redis:7-alpine
+    container_name: metrics-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --requirepass redis123
+    volumes:
+      - redis-data:/data
+    networks:
+      - metrics-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+
+  # Prometheus pour collecte de métriques
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: metrics-prometheus
+    ports:
+      - "9090:9090"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
+    volumes:
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./config/prometheus-rules.yml:/etc/prometheus/rules.yml:ro
+      - prometheus-data:/prometheus
+    networks:
+      - metrics-network
+    restart: unless-stopped
+    depends_on:
+      - metrics-service
+
+  # Grafana pour visualisation
+  grafana:
+    image: grafana/grafana:latest
+    container_name: metrics-grafana
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./config/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./dashboards:/var/lib/grafana/dashboards:ro
+    networks:
+      - metrics-network
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+
+  # AlertManager pour gestion des alertes
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: metrics-alertmanager
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./config/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - alertmanager-data:/alertmanager
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+      - '--web.external-url=http://localhost:9093'
+    networks:
+      - metrics-network
+    restart: unless-stopped
+
+  # Node Exporter pour métriques système
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: metrics-node-exporter
+    ports:
+      - "9100:9100"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    networks:
+      - metrics-network
+    restart: unless-stopped
+
+  # cAdvisor pour métriques des conteneurs
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: metrics-cadvisor
+    ports:
+      - "8080:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    privileged: true
+    devices:
+      - /dev/kmsg
+    networks:
+      - metrics-network
+    restart: unless-stopped
+
+  # Nginx pour reverse proxy (optionnel) - DESACTIVÉ car le frontend a son propre nginx
+  # nginx:
+  #   image: nginx:alpine
+  #   container_name: metrics-nginx
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   volumes:
+  #     - ./config/nginx.conf:/etc/nginx/nginx.conf:ro
+  #     - ./config/ssl:/etc/nginx/ssl:ro
+  #   networks:
+  #     - metrics-network
+  #   depends_on:
+  #     - metrics-service
+  #     - grafana
+  #   restart: unless-stopped
+
+volumes:
+  mongo-data:
+    driver: local
+  redis-data:
+    driver: local
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local
+  alertmanager-data:
+    driver: local
+  metrics-logs:
+    driver: local
+
+networks:
+  metrics-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

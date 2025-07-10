@@ -1,0 +1,410 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "Business Metrics Dashboard",
+    "tags": ["business", "metrics", "kpi"],
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Total Bookings",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "increase(booking_total[24h])",
+            "legendFormat": "Bookings (24h)"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 6,
+          "x": 0,
+          "y": 0
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "steps": [
+                {
+                  "color": "red",
+                  "value": null
+                },
+                {
+                  "color": "yellow",
+                  "value": 10
+                },
+                {
+                  "color": "green",
+                  "value": 50
+                }
+              ]
+            },
+            "unit": "short"
+          }
+        }
+      },
+      {
+        "id": 2,
+        "title": "Revenue (24h)",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "increase(revenue_total[24h])",
+            "legendFormat": "Revenue"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 6,
+          "x": 6,
+          "y": 0
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "steps": [
+                {
+                  "color": "red",
+                  "value": null
+                },
+                {
+                  "color": "yellow",
+                  "value": 1000
+                },
+                {
+                  "color": "green",
+                  "value": 5000
+                }
+              ]
+            },
+            "unit": "currencyEUR"
+          }
+        }
+      },
+      {
+        "id": 3,
+        "title": "Active Users",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "active_users_total",
+            "legendFormat": "Active Users"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 6,
+          "x": 12,
+          "y": 0
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "steps": [
+                {
+                  "color": "red",
+                  "value": null
+                },
+                {
+                  "color": "yellow",
+                  "value": 100
+                },
+                {
+                  "color": "green",
+                  "value": 500
+                }
+              ]
+            },
+            "unit": "short"
+          }
+        }
+      },
+      {
+        "id": 4,
+        "title": "Conversion Rate",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "(increase(booking_completed_total[1h]) / increase(booking_started_total[1h])) * 100",
+            "legendFormat": "Conversion %"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 6,
+          "x": 18,
+          "y": 0
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "steps": [
+                {
+                  "color": "red",
+                  "value": null
+                },
+                {
+                  "color": "yellow",
+                  "value": 10
+                },
+                {
+                  "color": "green",
+                  "value": 25
+                }
+              ]
+            },
+            "unit": "percent"
+          }
+        }
+      },
+      {
+        "id": 5,
+        "title": "Booking Trends",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "rate(booking_total[5m]) * 60",
+            "legendFormat": "Bookings/min"
+          },
+          {
+            "expr": "rate(booking_completed_total[5m]) * 60",
+            "legendFormat": "Completed/min"
+          },
+          {
+            "expr": "rate(booking_cancelled_total[5m]) * 60",
+            "legendFormat": "Cancelled/min"
+          }
+        ],
+        "gridPos": {
+          "h": 9,
+          "w": 12,
+          "x": 0,
+          "y": 8
+        },
+        "fieldConfig": {
+          "defaults": {
+            "custom": {
+              "drawStyle": "line",
+              "lineInterpolation": "linear",
+              "barAlignment": 0,
+              "lineWidth": 1,
+              "fillOpacity": 10,
+              "gradientMode": "none",
+              "spanNulls": false,
+              "insertNulls": false,
+              "showPoints": "never",
+              "pointSize": 5,
+              "stacking": {
+                "mode": "none",
+                "group": "A"
+              },
+              "axisPlacement": "auto",
+              "axisLabel": "",
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "vis": false
+              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
+            },
+            "color": {
+              "mode": "palette-classic"
+            },
+            "unit": "short"
+          }
+        }
+      },
+      {
+        "id": 6,
+        "title": "Revenue by Service",
+        "type": "piechart",
+        "targets": [
+          {
+            "expr": "sum by (service_type) (increase(revenue_total[24h]))",
+            "legendFormat": "{{service_type}}"
+          }
+        ],
+        "gridPos": {
+          "h": 9,
+          "w": 12,
+          "x": 12,
+          "y": 8
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "vis": false
+              }
+            },
+            "unit": "currencyEUR"
+          }
+        }
+      },
+      {
+        "id": 7,
+        "title": "User Journey Funnel",
+        "type": "barchart",
+        "targets": [
+          {
+            "expr": "increase(funnel_landing_total[1h])",
+            "legendFormat": "Landing"
+          },
+          {
+            "expr": "increase(funnel_search_total[1h])",
+            "legendFormat": "Search"
+          },
+          {
+            "expr": "increase(funnel_selection_total[1h])",
+            "legendFormat": "Selection"
+          },
+          {
+            "expr": "increase(funnel_checkout_total[1h])",
+            "legendFormat": "Checkout"
+          },
+          {
+            "expr": "increase(funnel_payment_total[1h])",
+            "legendFormat": "Payment"
+          },
+          {
+            "expr": "increase(funnel_confirmation_total[1h])",
+            "legendFormat": "Confirmation"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 24,
+          "x": 0,
+          "y": 17
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                }
+              ]
+            },
+            "unit": "short"
+          }
+        }
+      },
+      {
+        "id": 8,
+        "title": "Top Booking Sources",
+        "type": "table",
+        "targets": [
+          {
+            "expr": "topk(10, sum by (source) (increase(booking_total[24h])))",
+            "legendFormat": "{{source}}",
+            "format": "table"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 25
+        },
+        "fieldConfig": {
+          "defaults": {
+            "custom": {
+              "align": "auto",
+              "displayMode": "auto"
+            },
+            "unit": "short"
+          }
+        }
+      },
+      {
+        "id": 9,
+        "title": "Average Order Value",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "increase(revenue_total[1h]) / increase(booking_completed_total[1h])",
+            "legendFormat": "AOV"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 25
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "drawStyle": "line",
+              "lineInterpolation": "linear",
+              "barAlignment": 0,
+              "lineWidth": 1,
+              "fillOpacity": 10,
+              "gradientMode": "none",
+              "spanNulls": false,
+              "insertNulls": false,
+              "showPoints": "never",
+              "pointSize": 5,
+              "stacking": {
+                "mode": "none",
+                "group": "A"
+              },
+              "axisPlacement": "auto",
+              "axisLabel": "",
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "vis": false
+              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
+            },
+            "unit": "currencyEUR"
+          }
+        }
+      }
+    ],
+    "time": {
+      "from": "now-24h",
+      "to": "now"
+    },
+    "refresh": "30s",
+    "schemaVersion": 30,
+    "version": 1,
+    "links": []
+  }
+}

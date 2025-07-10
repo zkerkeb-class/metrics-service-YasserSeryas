@@ -1,0 +1,388 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "Alerts & Health Dashboard",
+    "tags": ["alerts", "health", "monitoring"],
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Active Alerts",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "count(ALERTS{alertstate=\"firing\"})",
+            "legendFormat": "Active Alerts"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 6,
+          "x": 0,
+          "y": 0
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "yellow",
+                  "value": 1
+                },
+                {
+                  "color": "red",
+                  "value": 5
+                }
+              ]
+            },
+            "unit": "short"
+          }
+        }
+      },
+      {
+        "id": 2,
+        "title": "Critical Alerts",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "count(ALERTS{alertstate=\"firing\", severity=\"critical\"})",
+            "legendFormat": "Critical"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 6,
+          "x": 6,
+          "y": 0
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 1
+                }
+              ]
+            },
+            "unit": "short"
+          }
+        }
+      },
+      {
+        "id": 3,
+        "title": "Services Up",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "count(up == 1)",
+            "legendFormat": "Healthy Services"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 6,
+          "x": 12,
+          "y": 0
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "steps": [
+                {
+                  "color": "red",
+                  "value": null
+                },
+                {
+                  "color": "yellow",
+                  "value": 5
+                },
+                {
+                  "color": "green",
+                  "value": 10
+                }
+              ]
+            },
+            "unit": "short"
+          }
+        }
+      },
+      {
+        "id": 4,
+        "title": "Overall Health Score",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "(count(up == 1) / count(up)) * 100",
+            "legendFormat": "Health %"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 6,
+          "x": 18,
+          "y": 0
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "steps": [
+                {
+                  "color": "red",
+                  "value": null
+                },
+                {
+                  "color": "yellow",
+                  "value": 80
+                },
+                {
+                  "color": "green",
+                  "value": 95
+                }
+              ]
+            },
+            "unit": "percent",
+            "min": 0,
+            "max": 100
+          }
+        }
+      },
+      {
+        "id": 5,
+        "title": "Alert Timeline",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "sum by (severity) (rate(alert_notifications_sent_total[5m]))",
+            "legendFormat": "{{severity}} alerts/min"
+          }
+        ],
+        "gridPos": {
+          "h": 9,
+          "w": 24,
+          "x": 0,
+          "y": 8
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "drawStyle": "line",
+              "lineInterpolation": "linear",
+              "barAlignment": 0,
+              "lineWidth": 1,
+              "fillOpacity": 10,
+              "gradientMode": "none",
+              "spanNulls": false,
+              "insertNulls": false,
+              "showPoints": "never",
+              "pointSize": 5,
+              "stacking": {
+                "mode": "normal",
+                "group": "A"
+              },
+              "axisPlacement": "auto",
+              "axisLabel": "",
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "vis": false
+              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
+            },
+            "unit": "short"
+          }
+        }
+      },
+      {
+        "id": 6,
+        "title": "Service Health Status",
+        "type": "table",
+        "targets": [
+          {
+            "expr": "up",
+            "legendFormat": "{{instance}}",
+            "format": "table"
+          }
+        ],
+        "gridPos": {
+          "h": 10,
+          "w": 12,
+          "x": 0,
+          "y": 17
+        },
+        "fieldConfig": {
+          "defaults": {
+            "custom": {
+              "align": "auto",
+              "displayMode": "color-background"
+            },
+            "mappings": [
+              {
+                "type": "value",
+                "value": "0",
+                "text": "DOWN",
+                "color": "red"
+              },
+              {
+                "type": "value",
+                "value": "1",
+                "text": "UP",
+                "color": "green"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": 7,
+        "title": "Alert Rules Status",
+        "type": "table",
+        "targets": [
+          {
+            "expr": "prometheus_rule_group_rules",
+            "legendFormat": "{{rule_group}}",
+            "format": "table"
+          }
+        ],
+        "gridPos": {
+          "h": 10,
+          "w": 12,
+          "x": 12,
+          "y": 17
+        },
+        "fieldConfig": {
+          "defaults": {
+            "custom": {
+              "align": "auto",
+              "displayMode": "auto"
+            },
+            "unit": "short"
+          }
+        }
+      },
+      {
+        "id": 8,
+        "title": "Response Time Heatmap",
+        "type": "heatmap",
+        "targets": [
+          {
+            "expr": "rate(http_request_duration_seconds_bucket[5m])",
+            "legendFormat": "{{le}}"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 27
+        },
+        "fieldConfig": {
+          "defaults": {
+            "custom": {
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "vis": false
+              },
+              "scaleDistribution": {
+                "type": "linear"
+              }
+            }
+          }
+        }
+      },
+      {
+        "id": 9,
+        "title": "Error Rate by Service",
+        "type": "bargauge",
+        "targets": [
+          {
+            "expr": "rate(http_requests_total{status=~\"5..\"}[5m]) / rate(http_requests_total[5m]) * 100",
+            "legendFormat": "{{service}}"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 27
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "yellow",
+                  "value": 1
+                },
+                {
+                  "color": "red",
+                  "value": 5
+                }
+              ]
+            },
+            "unit": "percent",
+            "min": 0,
+            "max": 100
+          }
+        }
+      }
+    ],
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "refresh": "30s",
+    "schemaVersion": 30,
+    "version": 1,
+    "links": [],
+    "annotations": {
+      "list": [
+        {
+          "builtIn": 1,
+          "datasource": "-- Grafana --",
+          "enable": true,
+          "hide": true,
+          "iconColor": "rgba(0, 211, 255, 1)",
+          "name": "Annotations & Alerts",
+          "type": "dashboard"
+        }
+      ]
+    }
+  }
+}

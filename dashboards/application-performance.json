@@ -1,0 +1,513 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "Application Performance Dashboard",
+    "tags": ["performance", "application", "latency"],
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Response Time (P95)",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))",
+            "legendFormat": "P95 Latency"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 6,
+          "x": 0,
+          "y": 0
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "yellow",
+                  "value": 0.5
+                },
+                {
+                  "color": "red",
+                  "value": 1.0
+                }
+              ]
+            },
+            "unit": "s"
+          }
+        }
+      },
+      {
+        "id": 2,
+        "title": "Requests/sec",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "rate(http_requests_total[5m])",
+            "legendFormat": "RPS"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 6,
+          "x": 6,
+          "y": 0
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "yellow",
+                  "value": 100
+                },
+                {
+                  "color": "red",
+                  "value": 500
+                }
+              ]
+            },
+            "unit": "reqps"
+          }
+        }
+      },
+      {
+        "id": 3,
+        "title": "Error Rate",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "rate(http_requests_total{status=~\"5..\"}[5m]) / rate(http_requests_total[5m]) * 100",
+            "legendFormat": "Error Rate"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 6,
+          "x": 12,
+          "y": 0
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "yellow",
+                  "value": 1
+                },
+                {
+                  "color": "red",
+                  "value": 5
+                }
+              ]
+            },
+            "unit": "percent"
+          }
+        }
+      },
+      {
+        "id": 4,
+        "title": "Active Connections",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "active_connections_total",
+            "legendFormat": "Connections"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 6,
+          "x": 18,
+          "y": 0
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "yellow",
+                  "value": 100
+                },
+                {
+                  "color": "red",
+                  "value": 500
+                }
+              ]
+            },
+            "unit": "short"
+          }
+        }
+      },
+      {
+        "id": 5,
+        "title": "HTTP Request Duration",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.50, rate(http_request_duration_seconds_bucket[5m]))",
+            "legendFormat": "P50"
+          },
+          {
+            "expr": "histogram_quantile(0.90, rate(http_request_duration_seconds_bucket[5m]))",
+            "legendFormat": "P90"
+          },
+          {
+            "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))",
+            "legendFormat": "P95"
+          },
+          {
+            "expr": "histogram_quantile(0.99, rate(http_request_duration_seconds_bucket[5m]))",
+            "legendFormat": "P99"
+          }
+        ],
+        "gridPos": {
+          "h": 9,
+          "w": 12,
+          "x": 0,
+          "y": 8
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "drawStyle": "line",
+              "lineInterpolation": "linear",
+              "barAlignment": 0,
+              "lineWidth": 1,
+              "fillOpacity": 10,
+              "gradientMode": "none",
+              "spanNulls": false,
+              "insertNulls": false,
+              "showPoints": "never",
+              "pointSize": 5,
+              "stacking": {
+                "mode": "none",
+                "group": "A"
+              },
+              "axisPlacement": "auto",
+              "axisLabel": "",
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "vis": false
+              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
+            },
+            "unit": "s"
+          }
+        }
+      },
+      {
+        "id": 6,
+        "title": "HTTP Status Codes",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "rate(http_requests_total{status=~\"2..\"}[5m])",
+            "legendFormat": "2xx Success"
+          },
+          {
+            "expr": "rate(http_requests_total{status=~\"3..\"}[5m])",
+            "legendFormat": "3xx Redirect"
+          },
+          {
+            "expr": "rate(http_requests_total{status=~\"4..\"}[5m])",
+            "legendFormat": "4xx Client Error"
+          },
+          {
+            "expr": "rate(http_requests_total{status=~\"5..\"}[5m])",
+            "legendFormat": "5xx Server Error"
+          }
+        ],
+        "gridPos": {
+          "h": 9,
+          "w": 12,
+          "x": 12,
+          "y": 8
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "drawStyle": "line",
+              "lineInterpolation": "linear",
+              "barAlignment": 0,
+              "lineWidth": 1,
+              "fillOpacity": 10,
+              "gradientMode": "none",
+              "spanNulls": false,
+              "insertNulls": false,
+              "showPoints": "never",
+              "pointSize": 5,
+              "stacking": {
+                "mode": "normal",
+                "group": "A"
+              },
+              "axisPlacement": "auto",
+              "axisLabel": "",
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "vis": false
+              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
+            },
+            "unit": "reqps"
+          }
+        }
+      },
+      {
+        "id": 7,
+        "title": "Database Query Performance",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(db_query_duration_seconds_bucket[5m]))",
+            "legendFormat": "P95 Query Time"
+          },
+          {
+            "expr": "rate(db_queries_total[5m])",
+            "legendFormat": "Queries/sec"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 17
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "drawStyle": "line",
+              "lineInterpolation": "linear",
+              "barAlignment": 0,
+              "lineWidth": 1,
+              "fillOpacity": 10,
+              "gradientMode": "none",
+              "spanNulls": false,
+              "insertNulls": false,
+              "showPoints": "never",
+              "pointSize": 5,
+              "stacking": {
+                "mode": "none",
+                "group": "A"
+              },
+              "axisPlacement": "auto",
+              "axisLabel": "",
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "vis": false
+              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
+            },
+            "unit": "s"
+          }
+        }
+      },
+      {
+        "id": 8,
+        "title": "Cache Hit Rate",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "rate(cache_hits_total[5m]) / (rate(cache_hits_total[5m]) + rate(cache_misses_total[5m])) * 100",
+            "legendFormat": "Hit Rate %"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 17
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "drawStyle": "line",
+              "lineInterpolation": "linear",
+              "barAlignment": 0,
+              "lineWidth": 1,
+              "fillOpacity": 10,
+              "gradientMode": "none",
+              "spanNulls": false,
+              "insertNulls": false,
+              "showPoints": "never",
+              "pointSize": 5,
+              "stacking": {
+                "mode": "none",
+                "group": "A"
+              },
+              "axisPlacement": "auto",
+              "axisLabel": "",
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "vis": false
+              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
+            },
+            "unit": "percent",
+            "min": 0,
+            "max": 100
+          }
+        }
+      },
+      {
+        "id": 9,
+        "title": "Top Slow Endpoints",
+        "type": "table",
+        "targets": [
+          {
+            "expr": "topk(10, histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])))",
+            "legendFormat": "{{method}} {{route}}",
+            "format": "table"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 25
+        },
+        "fieldConfig": {
+          "defaults": {
+            "custom": {
+              "align": "auto",
+              "displayMode": "auto"
+            },
+            "unit": "s"
+          }
+        }
+      },
+      {
+        "id": 10,
+        "title": "WebSocket Connections",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "websocket_connections_total",
+            "legendFormat": "Active Connections"
+          },
+          {
+            "expr": "rate(websocket_messages_sent_total[5m])",
+            "legendFormat": "Messages/sec"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 25
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "drawStyle": "line",
+              "lineInterpolation": "linear",
+              "barAlignment": 0,
+              "lineWidth": 1,
+              "fillOpacity": 10,
+              "gradientMode": "none",
+              "spanNulls": false,
+              "insertNulls": false,
+              "showPoints": "never",
+              "pointSize": 5,
+              "stacking": {
+                "mode": "none",
+                "group": "A"
+              },
+              "axisPlacement": "auto",
+              "axisLabel": "",
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "vis": false
+              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
+            },
+            "unit": "short"
+          }
+        }
+      }
+    ],
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "refresh": "10s",
+    "schemaVersion": 30,
+    "version": 1,
+    "links": []
+  }
+}
